@@ -70,10 +70,10 @@ namespace ToDoApp {
                 // ACTIE : toevoegen -------------------------------------------
                 if (actie == "T") {
                     do {
-                        Console.Write("Geef de taakbeschrijving : ");
+                        Console.Write("Geef de taakbeschrijving (max 30 karakters) : ");
                         taakBeschrijving = Console.ReadLine().Trim();
                     }
-                    while (taakBeschrijving.IsWhiteSpace());
+                    while (string.IsNullOrWhiteSpace(taakBeschrijving) || taakBeschrijving.Length > 30);
 
                     bool inputOk;
                     do {
@@ -115,7 +115,6 @@ namespace ToDoApp {
                         takenBeschrijving[eersteDeadlineIndex] = taakBeschrijving;
                         takenDeadline[eersteDeadlineIndex] = taakDeadlineString;
                         takenVoltooid[eersteDeadlineIndex] = taakVoltooidString;
-
                         aantal++;
                     }
                 }
