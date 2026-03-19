@@ -1,9 +1,9 @@
 ﻿using System.Globalization;
+using System.Text;
 
 namespace ToDoApp {
     internal class Program {
         static void Main(string[] args) {
-
             // Haal data op uit databank.txt en parse dit naar 3 arrays -------------------------------------------
             const string DATABANKPAD = "databank.txt";
             if (!File.Exists(DATABANKPAD)) File.WriteAllLines(DATABANKPAD, new string[3]);
@@ -20,50 +20,43 @@ namespace ToDoApp {
 
             while (true) {
                 // Druk de lijst van taken gegroepeerd af op de console -------------------------------------------
-                string takenOplijsting = "";
-                string takenDeadlineOplijsting = "";
-                string takenVoltooidOplijsting = "";
+                StringBuilder takenOplijsting = new("\nTaken:\n");
+                StringBuilder takenDeadlineOplijsting = new("\nTaken met deadline:\n");
+                StringBuilder takenVoltooidOplijsting = new("\nVoltooide taken:\n");
 
                 for (int i = 0; i < aantal; i++) {
+                    bool heeftBeschrijving = !string.IsNullOrWhiteSpace(takenBeschrijving[i]);
+                    bool heeftDeadline = !string.IsNullOrWhiteSpace(takenDeadline[i]);
+                    bool isVoltooid = !string.IsNullOrWhiteSpace(takenVoltooid[i]);
+                    string prefix = (modus == "normaal") ? " *" : $"[{i + 1,2}]";
+                    string prefixVoltooid = (modus != "verwijderen") ? " *" : $"[{i + 1,2}]";
+
                     // Compileer de taken zonder extra info -------------------------------------------
-                    if (takenDeadline[i].IsWhiteSpace() && takenVoltooid[i].IsWhiteSpace()) {
-                        if (modus == "normaal")
-                            takenOplijsting += $" *   {takenBeschrijving[i]}\n";
-                        else
-                            takenOplijsting += $"[{i + 1, 2}]   {takenBeschrijving[i]}\n";
+                    if (heeftBeschrijving && !heeftDeadline && !isVoltooid) {
+                        takenOplijsting.AppendLine($"{prefix}   {takenBeschrijving[i]}");
                     }
                     // Compileer de taken met deadline en zonder voltooidatum -------------------------------------------
-                    else if (!takenDeadline[i].IsWhiteSpace() && takenVoltooid[i].IsWhiteSpace()) {
-                        DateOnly taakDeadline = DateOnly.ParseExact(takenDeadline[i], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None);
-                        if (modus == "normaal")
-                            takenDeadlineOplijsting += $" *   deadline: {takenDeadline[i]} (nog: {taakDeadline.DayNumber - vandaag.DayNumber} dagen) | {takenBeschrijving[i]}\n";
-                        else
-                            takenDeadlineOplijsting += $"[{i + 1, 2}]   deadline: {takenDeadline[i]} (nog: {taakDeadline.DayNumber - vandaag.DayNumber} dagen) | {takenBeschrijving[i]}\n";
+                    else if (heeftDeadline && !isVoltooid) {
+                        DateOnly taakDeadline = DateOnly.ParseExact(takenDeadline[i], "yyyy-MM-dd");
+                        int dagenTotDeadline = taakDeadline.DayNumber - vandaag.DayNumber;
+
+                        takenDeadlineOplijsting.AppendLine($"{prefix}   deadline: {takenDeadline[i]} (nog: {dagenTotDeadline} dagen) | {takenBeschrijving[i]}");
                     }
                     // Compileer de taken zonder deadline en met voltooidatum -------------------------------------------
-                    else if (takenDeadline[i].IsWhiteSpace() && !takenVoltooid[i].IsWhiteSpace()) {
-                        if (modus == "verwijderen")
-                        takenVoltooidOplijsting += $"[{i + 1,2}]   voltooid op: {takenVoltooid[i]} | {takenBeschrijving[i]}\n";
-                        else 
-                            takenVoltooidOplijsting += $" *   voltooid op: {takenVoltooid[i]} | {takenBeschrijving[i]}\n";
+                    else if (!heeftDeadline && isVoltooid) {
+                            takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} | {takenBeschrijving[i]}");
                     }
-                    // Compileer de taken met deadline en zonder voltooidatum -------------------------------------------
-                    else if (!takenDeadline[i].IsWhiteSpace() && !takenVoltooid[i].IsWhiteSpace()) {
-                        if (modus == "verwijderen")
-                            takenVoltooidOplijsting += $"[{i + 1,2}]   voltooid op: {takenVoltooid[i]} | deadline: {takenDeadline[i]} | {takenBeschrijving[i]}\n";
-                        else
-                            takenVoltooidOplijsting += $" *   voltooid op: {takenVoltooid[i]} | deadline: {takenDeadline[i]} | {takenBeschrijving[i]}\n";
+                    // Compileer de taken met deadline en met voltooidatum -------------------------------------------
+                    else if (heeftDeadline && isVoltooid) {
+                            takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} | deadline: {takenDeadline[i]} | {takenBeschrijving[i]}");
                     }
                 }
+                int eersteDeadlineIndex_ = Array.FindIndex(takenDeadline, i => !i.IsWhiteSpace());
+                int eersteVoltooiIndex_ = Array.FindIndex(takenVoltooid, i => !i.IsWhiteSpace());
                 Console.Clear();
-                Console.WriteLine( // Print alle taken per groep
-                    "Taken: \n" +
-                    takenOplijsting +
-                    "\nTaken met deadline: \n" +
-                    takenDeadlineOplijsting +
-                    "\nVoltooide taken: \n" +
-                    takenVoltooidOplijsting
-                    );
+                Console.WriteLine("***************************** TODO APP by Arnout *****************************\n" +
+                                 $"Aantal taken : {aantal}, Lengte array : {takenBeschrijving.Length}, deadlineIndex : {eersteDeadlineIndex_}, voltooiIndex : {eersteVoltooiIndex_}\n" +
+                                 $"{takenOplijsting}{takenDeadlineOplijsting}{takenVoltooidOplijsting}");
 
                 // Vraagt de actie aan de gebruiker -------------------------------------------
                 string actie = "";
@@ -78,7 +71,7 @@ namespace ToDoApp {
                 // ACTIE : toevoegen -------------------------------------------
                 if (actie == "T") {
                     do {
-                        Console.Write("Geef de taakberschrijving : ");
+                        Console.Write("Geef de taakbeschrijving : ");
                         taakBeschrijving = Console.ReadLine().Trim();
                     }
                     while (taakBeschrijving.IsWhiteSpace());
@@ -93,11 +86,14 @@ namespace ToDoApp {
                     }
                     while (!inputOk);
 
-                    Array.Resize(ref takenBeschrijving, aantal + 1);
-                    Array.Resize(ref takenDeadline, aantal + 1);
-                    Array.Resize(ref takenVoltooid, aantal + 1);
+                    if (aantal + 1 > capaciteit) { // Verdubbeld de grootte van de arrays als er plaats te kort is
+                        capaciteit *= 2;
+                        Array.Resize(ref takenBeschrijving, capaciteit);
+                        Array.Resize(ref takenDeadline, capaciteit);
+                        Array.Resize(ref takenVoltooid, capaciteit);
+                    }
 
-                    if (taakDeadlineString.IsWhiteSpace()) {
+                    if (string.IsNullOrWhiteSpace(taakDeadlineString)) { // Plaats de taak in het begin van de lijst als hij geen deadline bevat
                         for (int i = aantal; i > 0; i--) {
                             takenBeschrijving[i] = takenBeschrijving[i - 1];
                             takenDeadline[i] = takenDeadline[i - 1];
@@ -107,23 +103,21 @@ namespace ToDoApp {
                         takenDeadline[0] = taakDeadlineString;
                         takenVoltooid[0] = taakVoltooidString;
                         aantal++;
-
                     }
-                    else {
-                        int firstDeadlineIndex = Math.Abs(Array.FindIndex(takenDeadline, i => !i.IsWhiteSpace()));
-                        for (int i = aantal; i >= firstDeadlineIndex; i--) {
+                    else { // Plaats de taak in het begin van de lijst van taken met een deadline als hij een deadline bevat
+                        int eersteDeadlineIndex = Array.FindIndex(takenDeadline, i => !i.IsWhiteSpace());
+                        for (int i = aantal; i > eersteDeadlineIndex; i--) {
                             takenBeschrijving[i] = takenBeschrijving[i - 1];
                             takenDeadline[i] = takenDeadline[i - 1];
                             takenVoltooid[i] = takenVoltooid[i - 1];
                         }
-                        takenBeschrijving[firstDeadlineIndex] = taakBeschrijving;
-                        takenDeadline[firstDeadlineIndex] = taakDeadlineString;
-                        takenVoltooid[firstDeadlineIndex] = taakVoltooidString;
+                        takenBeschrijving[eersteDeadlineIndex] = taakBeschrijving;
+                        takenDeadline[eersteDeadlineIndex] = taakDeadlineString;
+                        takenVoltooid[eersteDeadlineIndex] = taakVoltooidString;
+
                         aantal++;
                     }
-
                 }
-
                 // ACTIE : voltooien -------------------------------------------
                 else if (modus == "voltooien") {
                     bool inputOk;
@@ -139,14 +133,17 @@ namespace ToDoApp {
                     string teVoltooienTaakDeadlineString = takenDeadline[teVoltooienIndex];
                     string teVoltooienTaakVoltooidString = takenVoltooid[teVoltooienIndex];
 
-                    for (int i = teVoltooienIndex; i < aantal - 1; i++) {
+                    int eersteVoltooiIndex = Array.FindIndex(takenVoltooid, i => !i.IsWhiteSpace());
+                    if (eersteVoltooiIndex < 0) eersteVoltooiIndex = aantal;
+
+                    for (int i = teVoltooienIndex; i < eersteVoltooiIndex; i++) { // Plaats de taak in het begin van de lijst van voltooide taken
                         takenBeschrijving[i] = takenBeschrijving[i + 1];
                         takenDeadline[i] = takenDeadline[i + 1];
                         takenVoltooid[i] = takenVoltooid[i + 1];
                     }
-                    takenBeschrijving[aantal - 1] = teVoltooienTaakBeschrijving;
-                    takenDeadline[aantal - 1] = teVoltooienTaakDeadlineString;
-                    takenVoltooid[aantal - 1] = vandaag.ToString("yyyy-MM-dd");
+                    takenBeschrijving[eersteVoltooiIndex - 1] = teVoltooienTaakBeschrijving;
+                    takenDeadline[eersteVoltooiIndex - 1] = teVoltooienTaakDeadlineString;
+                    takenVoltooid[eersteVoltooiIndex - 1] = vandaag.ToString("yyyy-MM-dd");
 
                     modus = "normaal";
                 }
@@ -154,13 +151,12 @@ namespace ToDoApp {
                     modus = "voltooien";
                     continue;
                 }
-
                 // ACTIE : verwijderen -------------------------------------------
                 else if (modus == "verwijderen") {
                     bool inputok;
                     int teVerwijderenIndex;
                     do {
-                        Console.WriteLine("Geef het nummer van de te verwijderen taak : ");
+                        Console.Write("Geef het nummer van de te verwijderen taak : ");
                         inputok = int.TryParse(Console.ReadLine().Trim(), out teVerwijderenIndex);
                         teVerwijderenIndex--;
                     }
@@ -171,23 +167,21 @@ namespace ToDoApp {
                         takenDeadline[i] = takenDeadline[i + 1];
                         takenVoltooid[i] = takenVoltooid[i + 1];
                     }
-                    Array.Resize(ref takenBeschrijving, aantal - 1);
-                    Array.Resize(ref takenDeadline, aantal - 1);
-                    Array.Resize(ref takenVoltooid, aantal - 1);
+                    takenBeschrijving[^1] = default;
+                    takenDeadline[^1] = default;
+                    takenVoltooid[^1] = default;
                     aantal--;
 
                     modus = "normaal";
-                    continue;
                 }
                 else if (actie == "D") {
                     modus = "verwijderen";
                     continue;
                 }
-
-                // Scrijft de taken weg naar databanken.txt
-                databank[0] = string.Join("|", takenBeschrijving);
-                databank[1] = string.Join("|", takenDeadline);
-                databank[2] = string.Join("|", takenVoltooid);
+                // Scrijft de taken weg naar databanken.txt -------------------------------------------
+                databank[0] = string.Join("|", takenBeschrijving, 0, aantal);
+                databank[1] = string.Join("|", takenDeadline, 0, aantal);
+                databank[2] = string.Join("|", takenVoltooid, 0, aantal);
                 File.WriteAllLines(DATABANKPAD, databank);
             }
         }
