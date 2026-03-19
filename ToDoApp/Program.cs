@@ -44,18 +44,17 @@ namespace ToDoApp {
                     }
                     // Compileer de taken zonder deadline en met voltooidatum -------------------------------------------
                     else if (!heeftDeadline && isVoltooid) {
-                            takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} | {takenBeschrijving[i]}");
+                        takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} | {takenBeschrijving[i]}");
                     }
                     // Compileer de taken met deadline en met voltooidatum -------------------------------------------
                     else if (heeftDeadline && isVoltooid) {
-                            takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} | deadline: {takenDeadline[i]} | {takenBeschrijving[i]}");
+                        takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} | deadline: {takenDeadline[i]} | {takenBeschrijving[i]}");
                     }
                 }
-                int eersteDeadlineIndex_ = Array.FindIndex(takenDeadline, i => !i.IsWhiteSpace());
-                int eersteVoltooiIndex_ = Array.FindIndex(takenVoltooid, i => !i.IsWhiteSpace());
+
                 Console.Clear();
                 Console.WriteLine("***************************** TODO APP by Arnout *****************************\n" +
-                                 $"Aantal taken : {aantal}, Lengte array : {takenBeschrijving.Length}, deadlineIndex : {eersteDeadlineIndex_}, voltooiIndex : {eersteVoltooiIndex_}\n" +
+                                 $"Aantal taken : {aantal}, Lengte array : {takenBeschrijving.Length}\n" +
                                  $"{takenOplijsting}{takenDeadlineOplijsting}{takenVoltooidOplijsting}");
 
                 // Vraagt de actie aan de gebruiker -------------------------------------------
@@ -106,6 +105,8 @@ namespace ToDoApp {
                     }
                     else { // Plaats de taak in het begin van de lijst van taken met een deadline als hij een deadline bevat
                         int eersteDeadlineIndex = Array.FindIndex(takenDeadline, i => !i.IsWhiteSpace());
+                        if (eersteDeadlineIndex < 0) eersteDeadlineIndex = 0;
+
                         for (int i = aantal; i > eersteDeadlineIndex; i--) {
                             takenBeschrijving[i] = takenBeschrijving[i - 1];
                             takenDeadline[i] = takenDeadline[i - 1];
@@ -123,7 +124,7 @@ namespace ToDoApp {
                     bool inputOk;
                     int teVoltooienIndex;
                     do {
-                        Console.WriteLine("Geef het nummer van de te voltooien taak : ");
+                        Console.Write("Geef het nummer van de te voltooien taak : ");
                         inputOk = int.TryParse(Console.ReadLine().Trim(), out teVoltooienIndex);
                         teVoltooienIndex--;
                     }
