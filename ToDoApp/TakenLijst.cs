@@ -40,12 +40,6 @@ namespace ToDoApp {
             takenDeadlines[index] = taak[1];
             takenVoltooid[index] = taak[2];
         }
-        // Wisselt 2 taken van plaats
-        public void WisselTaken(int index1, int index2) {
-            (takenBeschrijvingen[index1], takenBeschrijvingen[index2]) = (takenBeschrijvingen[index2], takenBeschrijvingen[index1]);
-            (takenDeadlines[index1], takenDeadlines[index2]) = (takenDeadlines[index2], takenDeadlines[index1]);
-            (takenVoltooid[index1], takenVoltooid[index2]) = (takenVoltooid[index2], takenVoltooid[index1]);
-        }
         // Haalt de datum van vandaag op -------------------------------------------
         public static DateOnly HuidigeDatum() => DateOnly.FromDateTime(DateTime.Now);
 
@@ -82,11 +76,12 @@ namespace ToDoApp {
                 else if (heeftDeadline && !isVoltooid) {
                     DateOnly taakDeadline = DateOnly.ParseExact(takenDeadlines[i], "yyyy-MM-dd");
                     int dagenTotDeadline = taakDeadline.DayNumber - HuidigeDatum().DayNumber;
-                    takenDeadlineOplijsting.AppendLine($"{prefix}   deadline: {takenDeadlines[i]} (nog: {dagenTotDeadline} dagen) | {takenBeschrijvingen[i]}");
+                    string infoVasteLengte = $"{prefix}   deadline: {takenDeadlines[i]} | nog: {dagenTotDeadline} dagen";
+                    takenDeadlineOplijsting.AppendLine($"{infoVasteLengte, -42} | {takenBeschrijvingen[i]}");
                 }
                 // Compileer de taken zonder deadline en met voltooidatum
                 else if (!heeftDeadline && isVoltooid) {
-                    takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} | {takenBeschrijvingen[i]}");
+                    takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} |                      | {takenBeschrijvingen[i]}");
                 }
                 // Compileer de taken met deadline en met voltooidatum
                 else if (heeftDeadline && isVoltooid) {
