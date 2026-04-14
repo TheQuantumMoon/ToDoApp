@@ -63,7 +63,7 @@ namespace ToDoApp {
                     string[] taak = takenLijst.HaalTaakOpIndex(teVoltooienIndex);
                     taak[2] = TakenLijst.HuidigeDatum().ToString("yyyy-MM-dd");
 
-                    takenLijst.VoegTaakInOpIndex(eersteVoltooiIndex - 1, taak);
+                    takenLijst.VoegTaakInOpIndex(eersteVoltooiIndex, taak);
                     takenLijst.VerwijderIndex(teVoltooienIndex);
                 }
                 // ACTIE : verwijderen -------------------------------------------

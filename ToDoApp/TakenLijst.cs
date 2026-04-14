@@ -6,7 +6,7 @@ namespace ToDoApp {
         private const string DATABANKPAD = "databank.txt";
         private int aantal;
         private int capaciteit;
-        private string[] databank;
+        private readonly string[] databank;
         private string[] takenBeschrijvingen;
         private string[] takenDeadlines;
         private string[] takenVoltooid;
@@ -52,7 +52,7 @@ namespace ToDoApp {
         // Vindt de index van het eerste lege item van takenVoltooid 
         public int GeefEersteLegeVoltooideIndex() {
             int index = Array.FindIndex(takenVoltooid, i => !String.IsNullOrWhiteSpace(i));
-            if (index < 0) index = 0;
+            if (index < 0) index = aantal;
             return index;
         }
         // Druk de lijst van taken gegroepeerd af op de console -------------------------------------------
@@ -67,6 +67,8 @@ namespace ToDoApp {
                 bool isVoltooid = !string.IsNullOrWhiteSpace(takenVoltooid[i]);
                 string prefix = (modus == "normaal") ? " *" : $"[{i + 1,2}]";
                 string prefixVoltooid = (modus != "verwijderen") ? " *" : $"[{i + 1,2}]";
+                const int kolom1Breedte = -24;
+                const int kolom2Breedte = -22;
 
                 // Compileer de taken zonder extra info
                 if (heeftBeschrijving && !heeftDeadline && !isVoltooid) {
@@ -76,12 +78,13 @@ namespace ToDoApp {
                 else if (heeftDeadline && !isVoltooid) {
                     DateOnly taakDeadline = DateOnly.ParseExact(takenDeadlines[i], "yyyy-MM-dd");
                     int dagenTotDeadline = taakDeadline.DayNumber - HuidigeDatum().DayNumber;
-                    string infoVasteLengte = $"{prefix}   deadline: {takenDeadlines[i]} | nog: {dagenTotDeadline} dagen";
-                    takenDeadlineOplijsting.AppendLine($"{infoVasteLengte, -42} | {takenBeschrijvingen[i]}");
+                    string deadlineInfo = $"deadline: {takenDeadlines[i]}";
+                    string aantalDagenInfo = $" nog: {dagenTotDeadline} dagen ";
+                    takenDeadlineOplijsting.AppendLine($"{prefix}   {deadlineInfo,kolom1Breedte}|{aantalDagenInfo, kolom2Breedte}| {takenBeschrijvingen[i]}");
                 }
                 // Compileer de taken zonder deadline en met voltooidatum
                 else if (!heeftDeadline && isVoltooid) {
-                    takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} |                      | {takenBeschrijvingen[i]}");
+                    takenVoltooidOplijsting.AppendLine($"{prefixVoltooid}   voltooid op: {takenVoltooid[i]} |{"", kolom2Breedte}| {takenBeschrijvingen[i]}");
                 }
                 // Compileer de taken met deadline en met voltooidatum
                 else if (heeftDeadline && isVoltooid) {
@@ -102,7 +105,7 @@ namespace ToDoApp {
                 Array.Resize(ref takenDeadlines, capaciteit);
                 Array.Resize(ref takenVoltooid, capaciteit);
             }
-            for (int i = aantal; i > 0; i--) {
+            for (int i = aantal; i > index; i--) {
                 takenBeschrijvingen[i] = takenBeschrijvingen[i - 1];
                 takenDeadlines[i] = takenDeadlines[i - 1];
                 takenVoltooid[i] = takenVoltooid[i - 1];
