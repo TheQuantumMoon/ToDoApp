@@ -9,7 +9,6 @@ namespace ToDoApp {
             while (true) {
 
                 takenLijst.PrintTakenLijst("normaal");
-
                 // Vraagt de actie aan de gebruiker
                 Console.Write("Acties ([T]oevoegen / [V]oltooien / [D]efinitief verwijderen) ?: ");
                 string actie = Console.ReadLine()!.ToUpper().Trim();
